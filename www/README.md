@@ -1,11 +1,61 @@
-# React + TypeScript + Vite
+# sub-to-me — Web Push Subscription Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A single-page React app that asks the user to subscribe to push notifications via Firebase Cloud Messaging (FCM) and registers their device token with a backend API.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 18+
+- A [Firebase](https://console.firebase.google.com/) project with **Cloud Messaging** enabled
+- A backend API that accepts `POST /register-device` with body `{ "token": "<fcm-token>" }`
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Create a `.env` file in the project root (or copy from `.env.example`):
+
+```env
+VITE_BASE_API=https://your-api-base-url.com
+VITE_VAPID_KEY=your-web-push-vapid-key
+```
+
+| Variable | Description |
+|---|---|
+| `VITE_BASE_API` | Base URL of your backend API (no trailing slash) |
+| `VITE_VAPID_KEY` | Web Push VAPID key from Firebase Console |
+
+**Getting the VAPID key:**
+1. Go to Firebase Console → your project → **Project Settings** → **Cloud Messaging** tab
+2. Scroll to **Web Push certificates**
+3. Click **Generate key pair** if none exists
+4. Copy the **Key pair** value
+
+### 3. Run the dev server
+
+```bash
+npm run dev
+```
+
+### 4. Build for production
+
+```bash
+npm run build
+```
+
+## How it works
+
+1. User clicks **"Yes, subscribe me"**
+2. The browser requests notification permission
+3. The FCM service worker (`/firebase-messaging-sw.js`) is registered
+4. A device token is obtained using the VAPID key
+5. The token is sent to `POST $VITE_BASE_API/register-device`
+6. A success message is shown on completion
 
 ## React Compiler
 
