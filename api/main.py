@@ -6,6 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -38,11 +39,11 @@ class Token(BaseModel):
 
 
 class RegisterDeviceRequest(BaseModel):
-    device_id: str
+    token: str
 
 
 class NotifyRequest(BaseModel):
-    device_id: str
+    token: str
     title: str
     body: str
 
@@ -97,6 +98,13 @@ def _get_db() -> sqlite3.Connection:
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -114,11 +122,12 @@ def register_device(request: RegisterDeviceRequest):
     with _get_db() as conn:
         conn.execute(
             "INSERT OR IGNORE INTO device_tokens (token) VALUES (?)",
-            (request.device_id,),
+            (request.token,),
         )
         conn.commit()
         total = conn.execute("SELECT COUNT(*) FROM device_tokens").fetchone()[0]
-    return {"registered": request.device_id, "total": total}
+    print(f"Device registered: {request.token}")
+    return {"registered": request.token, "total": total}
 
 
 @app.post("/notify", status_code=status.HTTP_200_OK)
@@ -128,7 +137,7 @@ def send_notification(
 ):
     with _get_db() as conn:
         row = conn.execute(
-            "SELECT 1 FROM device_tokens WHERE token = ?", (request.device_id,)
+            "SELECT 1 FROM device_tokens WHERE token = ?", (request.token,)
         ).fetchone()
     if row is None:
         raise HTTPException(
@@ -140,7 +149,7 @@ def send_notification(
             title=request.title,
             body=request.body,
         ),
-        token=request.device_id,
+        token=request.token,
     )
     try:
         message_id = messaging.send(message)
