@@ -1,0 +1,23 @@
+services:
+  api:
+    build: ./api
+    env_file: ./api/.env            # APP_USERNAME, PASSWORD, JWT_SECRET, SERVICE_ACCOUNT_PATH
+    environment:
+      SERVICE_ACCOUNT_PATH: /run/secrets/serviceAccountKey.json
+    volumes:
+      # Mount the Firebase service-account key as a read-only file
+      - ./api/serviceAccountKey.json:/run/secrets/serviceAccountKey.json:ro
+      # Persist the SQLite database across restarts
+      - api_db:/app
+    restart: unless-stopped
+
+  www:
+    build: ./www
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  api_db:
