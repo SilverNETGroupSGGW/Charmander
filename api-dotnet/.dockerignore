@@ -2,6 +2,8 @@
 .env.*
 bin/
 obj/
+.vs/
 devices.db
 serviceAccountKey.json
 .git
+**/.vs/

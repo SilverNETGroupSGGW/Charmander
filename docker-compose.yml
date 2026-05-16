@@ -1,23 +1,35 @@
+name: charmander
+
 services:
   api:
-    build: ./api
-    env_file: ./api/.env            # APP_USERNAME, PASSWORD, JWT_SECRET, SERVICE_ACCOUNT_PATH
+    build:
+      context: ./api-dotnet
+      dockerfile: Dockerfile
+    env_file:
+      - ./api-dotnet/.env
     environment:
-      SERVICE_ACCOUNT_PATH: /run/secrets/serviceAccountKey.json
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8000
+      SERVICE_ACCOUNT_PATH: /app/serviceAccountKey.json
+      DATABASE_CONNECTION_STRING: Data Source=/app/data/devices.db
     volumes:
-      # Mount the Firebase service-account key as a read-only file
-      - ./api/serviceAccountKey.json:/run/secrets/serviceAccountKey.json:ro
-      # Persist the SQLite database across restarts
-      - api_db:/app
+      - ${FIREBASE_KEY_FILE:-./api-dotnet/serviceAccountKey.json}:/app/serviceAccountKey.json:ro
+      - api_data:/app/data
+    expose:
+      - "8000"
     restart: unless-stopped
 
   www:
-    build: ./www
+    build:
+      context: ./react-test-app
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_API: /api
     ports:
-      - "80:80"
+      - "${WWW_PORT:-80}:80"
     depends_on:
       - api
     restart: unless-stopped
 
 volumes:
-  api_db:
+  api_data:
