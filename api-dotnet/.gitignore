@@ -1,5 +1,8 @@
 serviceAccountKey.json
 .env
 devices.db
+.vs/
+*.suo
+*.user
 bin/
 obj/
