@@ -1,0 +1,5 @@
+serviceAccountKey.json
+.env
+devices.db
+bin/
+obj/
