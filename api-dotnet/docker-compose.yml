@@ -1,0 +1,12 @@
+services:
+  api2:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      SERVICE_ACCOUNT_PATH: /app/serviceAccountKey.json
+    volumes:
+      - ${FIREBASE_KEY_FILE:-./serviceAccountKey.json}:/app/serviceAccountKey.json:ro
+    restart: unless-stopped

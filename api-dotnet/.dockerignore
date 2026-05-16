@@ -1,0 +1,7 @@
+.env
+.env.*
+bin/
+obj/
+devices.db
+serviceAccountKey.json
+.git
